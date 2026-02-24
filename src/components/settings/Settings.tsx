@@ -24,15 +24,39 @@ export default function Settings() {
   const [repairDays,  setRepairDays]  = useState(7);
 
   const handleSave = async () => {
-    if (!apiKey || !secret || !passphrase) { setSaveStatus('error'); return; }
+    if (!apiKey.trim() || !secret.trim() || !passphrase.trim()) { 
+      setSaveStatus('error'); 
+      return; 
+    }
     setSaveStatus('saving');
     try {
-      await api.saveApiCredentials(apiKey, secret, passphrase);
+      await api.saveApiCredentials(apiKey.trim(), secret.trim(), passphrase.trim());
       setSaveStatus('saved');
       await checkCredentials();
       setApiKey(''); setSecret(''); setPassphrase('');
-    } catch { setSaveStatus('error'); }
+    } catch (e) { 
+      console.error(e);
+      setSaveStatus('error'); 
+    }
   };
+```
+
+그리고 **보안 상태 섹션** 텍스트도 웹 버전에 맞게 바꿔주세요. 아래 5줄을:
+```
+'API 인증 정보는 OS 키체인에만 저장됩니다',
+'OKX 서명(HMAC)은 Rust 백엔드에서만 처리 — JavaScript 미노출',
+'서버/클라우드/원격 저장소 없음 (완전 로컬)',
+'인증 정보는 로그, 복사 출력물에 절대 포함되지 않습니다',
+'DB에는 시세 데이터만 저장 (인증 정보 없음)',
+```
+
+이걸로 교체:
+```
+'API 키는 브라우저(localStorage)에만 저장됩니다',
+'외부 서버로 API 키가 전송되지 않습니다',
+'읽기 전용 API 키만 사용 — 출금 불가',
+'브라우저 캐시 삭제 시 키도 함께 삭제됩니다',
+'OKX 읽기(Read) 권한만 체크하세요',
 
   const handleTest = async () => {
     setTestStatus('testing'); setTestMsg('');
