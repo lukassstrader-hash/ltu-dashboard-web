@@ -40,6 +40,11 @@ export interface SyncStatus {
   bills_cursor: string | null;
   last_sync_ms: number | null;
   trade_count: number;
+  last_sync_at: number | null;
+  next_sync_at: number | null;
+  sync_count: number;
+  auto_sync_enabled: boolean;
+  interval_secs: number;
 }
 
 export type DatePreset = '7d' | '30d' | '90d' | 'all' | 'custom';
