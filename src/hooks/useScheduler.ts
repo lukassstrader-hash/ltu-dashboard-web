@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { invoke } from '@tauri-apps/api/core';
 
 export interface SchedulerSnapshot {
   auto_sync: boolean;
@@ -9,17 +8,33 @@ export interface SchedulerSnapshot {
   sync_count: number;
 }
 
+const STORAGE_KEY = 'ltu_scheduler';
+
+function loadScheduler(): SchedulerSnapshot {
+  try {
+    const item = localStorage.getItem(STORAGE_KEY);
+    if (item) return JSON.parse(item);
+  } catch {}
+  return {
+    auto_sync: false,
+    interval_secs: 300,
+    last_sync_ms: 0,
+    next_sync_ms: Date.now() + 300000,
+    sync_count: 0,
+  };
+}
+
+function saveScheduler(s: SchedulerSnapshot) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+}
+
 export function useScheduler() {
   const [status, setStatus] = useState<SchedulerSnapshot | null>(null);
 
   const fetch = useCallback(async () => {
-    try {
-      const s = await invoke<SchedulerSnapshot>('get_scheduler_status');
-      setStatus(s);
-    } catch { /* silently ignore if backend not ready */ }
+    setStatus(loadScheduler());
   }, []);
 
-  // Poll every 5 seconds to keep countdown fresh
   useEffect(() => {
     fetch();
     const id = setInterval(fetch, 5000);
@@ -27,16 +42,19 @@ export function useScheduler() {
   }, [fetch]);
 
   const setAutoSync = async (enabled: boolean) => {
-    await invoke('set_auto_sync', { enabled });
+    const s = loadScheduler();
+    s.auto_sync = enabled;
+    saveScheduler(s);
     await fetch();
   };
 
   const setInterval_ = async (seconds: number) => {
-    await invoke('set_sync_interval', { seconds });
+    const s = loadScheduler();
+    s.interval_secs = seconds;
+    saveScheduler(s);
     await fetch();
   };
 
-  // Compute seconds until next sync
   const secondsUntilNext = status
     ? Math.max(0, Math.round((status.next_sync_ms - Date.now()) / 1000))
     : null;
