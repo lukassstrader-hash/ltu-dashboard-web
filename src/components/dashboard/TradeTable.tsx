@@ -14,7 +14,7 @@ interface Props {
 const LIMIT_OPTIONS = [20, 50, 100] as const;
 
 export default function TradeTable({ trades, loading, fromMs, toMs }: Props) {
-  const { dateRange } = useStore();
+  useStore();
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copying' | 'done' | 'error'>('idle');
   const [copyLimit, setCopyLimit] = useState<number>(50);
 
